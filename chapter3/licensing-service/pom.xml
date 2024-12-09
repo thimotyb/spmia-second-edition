@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.2.3.RELEASE</version>
+		<version>3.4.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.optimagrowth</groupId>
@@ -15,7 +15,7 @@
 	<description>Ostock Licensing Service</description>
 
 	<properties>
-		<java.version>11</java.version>
+		<java.version>21</java.version>
 	</properties>
 
 	<dependencies>
@@ -44,9 +44,10 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-		    <groupId>org.projectlombok</groupId>
-		    <artifactId>lombok</artifactId>
-		    <scope>provided</scope>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<!--version>1.18.30</version-->
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 
