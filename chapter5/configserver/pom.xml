@@ -22,6 +22,11 @@
 
 	<dependencies>
 		<dependency>
+			<!-- Needed for starting from bootstrap.yml -->
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-bootstrap</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-config-server</artifactId>
 		</dependency>

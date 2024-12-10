@@ -3,15 +3,17 @@ spring:
     name: config-server
   profiles:
     active:
-    - native, git
+    - git
   cloud:
     config:
       server:
+        bootstrap: true
         native:
           search-locations: classpath:/config
         git:
-          uri: https://github.com/ihuaylupo/config.git
+          uri: https://github.com/thimotyb/config-spmia-2.git
           searchPaths: licensingservice
+          default-label: master  # Use this otherwise it will look for main branch
     
 server:
   port: 8071
