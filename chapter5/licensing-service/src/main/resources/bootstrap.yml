@@ -1,4 +1,6 @@
 spring:
+    main:
+      allow-bean-definition-overriding: true
     application:
      name: licensing-service 
     profiles:
@@ -6,3 +8,7 @@ spring:
     cloud:
         config: 
             uri: http://configserver:8071
+
+logging:
+  level: 
+    root: DEBUG

@@ -3,7 +3,7 @@ spring:
     name: config-server
   profiles:
     active:
-    - git
+    - native   # we will enable git profile later as it contains many more configs that will fail license-server
   cloud:
     config:
       server:
