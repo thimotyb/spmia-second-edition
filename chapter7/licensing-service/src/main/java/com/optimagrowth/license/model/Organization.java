@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+// We are not declaring this as an Entity because this is just a POJO, the Entity is managed by organizationservice
 @Getter @Setter @ToString
 public class Organization extends RepresentationModel<Organization> {
 
