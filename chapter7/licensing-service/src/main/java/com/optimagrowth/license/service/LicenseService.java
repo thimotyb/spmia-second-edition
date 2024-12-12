@@ -115,9 +115,10 @@ public class LicenseService {
 	}
 
 	@CircuitBreaker(name = "licenseService", fallbackMethod = "buildFallbackLicenseList")
-	@RateLimiter(name = "licenseService", fallbackMethod = "buildFallbackLicenseList")
-	@Retry(name = "retryLicenseService", fallbackMethod = "buildFallbackLicenseList")
-	@Bulkhead(name = "bulkheadLicenseService", type= Type.THREADPOOL, fallbackMethod = "buildFallbackLicenseList")
+	// Enable these one by one and rebuild/restart to see differences
+	//@RateLimiter(name = "licenseService", fallbackMethod = "buildFallbackLicenseList")
+	//@Retry(name = "retryLicenseService", fallbackMethod = "buildFallbackLicenseList")
+	//@Bulkhead(name = "bulkheadLicenseService", type= Type.THREADPOOL, fallbackMethod = "buildFallbackLicenseList")
 	public List<License> getLicensesByOrganization(String organizationId) throws TimeoutException {
 		logger.debug("getLicensesByOrganization Correlation id: {}",
 				UserContextHolder.getContext().getCorrelationId());
