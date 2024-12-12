@@ -162,7 +162,9 @@ OPPURE MINKUBE SSH:
 minikube ssh
 curl <podip>
 
+############################
 ### SPRING CHAPTER 1
+#############################
 
 # DOwnload and install spring tools
 https://spring.io/tools
@@ -177,10 +179,10 @@ source "/root/.sdkman/bin/sdkman-init.sh"
 # source "/home/azureuser/.sdkman/bin/sdkman-init.sh"
 sdk list java
 sdk install java 8.0.392-tem
-sdk install java 21.0.5-tem
+sdk install java 21.0.5-tem    # Remember to install this if mvn error: Fatal error compiling: error: release version 21 not supported
 sudo apt install maven
 mvn -v
-
+sudo apt install jq
 
 # Spring boot quickstart
 git clone https://github.com/thimotyb/spmia-second-edition.git
@@ -205,7 +207,7 @@ cd /workspace/spmia-second-edition/chapter3/licensing-service
 
 
 ###################################################
-# SPRING 5 EXAMPLES WITH LOMBOK 
+# LOMBOK 
 # Install STS https://spring.io/tools
 # Download lombok .jar https://projectlombok.org/download (1.18.30)
 # Copy lombok .jar in STS folder
@@ -314,7 +316,8 @@ docker-compose -f docker/docker-compose.yml up
 
 # Test single services
 curl http://localhost:8080/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62 | jq   # From licensing service
-curl http://localhost:8081/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3 | jq # From organization service
+curl http://localhost:8081/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3 | jq # From organization service 1
+curl http://localhost:8082/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3 | jq # From organization service 2
 
 # Query Eureka API
 curl -X GET http://localhost:8070/eureka/apps -H "Accept: application/json" | jq
@@ -322,24 +325,47 @@ curl -X GET http://localhost:8070/eureka/apps/LICENSING-SERVICE -H "Accept: appl
 
 
 
-#############################
+##########################
+# CHAPTER 7 - RESILIENCE4J
+##########################
+git clone https://github.com/thimotyb/spmia-second-edition.git
+git checkout java21
+cd spmia-second-edition/chapter7
+mvn package -DargLine="-Dspring.profiles.active=native" dockerfile:build
+docker-compose -f docker/docker-compose.yml up
 
+# Issue several times to get random unavailability
+curl http://localhost:8080/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/  
 
-curl http://localhost:8080/v1/organizations/d898a142-de44-466c-8c88-9ceb2c2429d3/licenses/f3831f8c-c338-4ebe-a82a-e2fc1d1ff78a
+# Call with correlation to check the Spring Filter Servlet to propagate correlation ID
+curl -X GET http://localhost:8080/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/ -H "tmx-correlation-id: MYSAMPLECORRELATIONID"
 
-Chapter5
-curl http://localhost:8080/v1/organizations/e254f8c-c442-4ebe-a82a-e2fc1d1ff78a/licenses/
+##########################
+# CHAPTER 8 - SERVICE GATEWAY
+##########################
+git clone https://github.com/thimotyb/spmia-second-edition.git
+git checkout java21
+cd spmia-second-edition/chapter8
+mvn package -DargLine="-Dspring.profiles.active=native" dockerfile:build
+docker-compose -f docker/docker-compose.yml up
 
-Chapter6
-sudo apt install jq
-curl http://localhost:5555/routes
+curl http://localhost:8072/actuator/gateway/routes | jq
 docker ps
-curl http://localhost:8080/v1/organizations/e254f8c-c442-4ebe-a82a-e2fc1d1ff78a/licenses/ | jq
-curl http://localhost:5555/api/licensing/v1/organizations/e254f8c-c442-4ebe-a82a-e2fc1d1ff78a/licenses/ | jq
-curl http://localhost:8085/v1/organizations/442adb6e-fa58-47f3-9ca2-ed1fecdfe86c | jq
-curl http://localhost:5555/api/organization/v1/organizations/442adb6e-fa58-47f3-9ca2-ed1fecdfe86c | jq
-curl -v http://localhost:5555/api/organization/v1/organizations/442adb6e-fa58-47f3-9ca2-ed1fecdfe86c     # Correlation ID added in response by filter
-curl -v http://localhost:5555/api/organization/v1/organizations/442adb6e-fa58-47f3-9ca2-ed1fecdfe86c -H "tmx-correlation-id: 4c0b1368-9e22-41d8-abd9-f1c4b35dtimo" # Corr ID fetched from request and bounced on response
+
+# Routing to Licensing Service
+curl http://localhost:8080/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62 | jq
+curl http://localhost:8072/licensing-service/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62 | jq
+
+# Routing to Organization Service
+curl http://localhost:8081/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3  | jq
+curl http://localhost:8072/organization-service/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3 | jq
+
+# Using manual mapping in gateway config:
+curl http://localhost:8072/organization/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3 | jq
+curl http://localhost:8072/license/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62 | jq
+
+curl -v http://localhost:8072/organization-service/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3     # Correlation ID added in response by filter
+curl -v http://localhost:8072/organization-service/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3 -H "tmx-correlation-id: 4c0b1368-9e22-41d8-abd9-f1c4b35dtimo" # Corr ID fetched from request and bounced on response
 
 
 Chapter7

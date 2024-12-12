@@ -121,7 +121,7 @@ public class LicenseService {
 	public List<License> getLicensesByOrganization(String organizationId) throws TimeoutException {
 		logger.debug("getLicensesByOrganization Correlation id: {}",
 				UserContextHolder.getContext().getCorrelationId());
-		randomlyRunLong();
+		// randomlyRunLong(); // Disable it now as the Circuit Breaker demo is done. Let's focus on Service Gateway
 		return licenseRepository.findByOrganizationId(organizationId);
 	}
 
