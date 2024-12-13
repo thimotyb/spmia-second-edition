@@ -27,5 +27,5 @@ COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
 COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
 COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
 
-#execute the application
-ENTRYPOINT ["java","-cp","app:app/lib/*","com.optimagrowth.license.LicenseServiceApplication"]
+#execute the application. Add-opens is necessary to make Redis template work.
+ENTRYPOINT ["java","-cp","app:app/lib/*","--add-opens=java.base/java.nio.charset=ALL-UNNAMED","com.optimagrowth.license.LicenseServiceApplication"]

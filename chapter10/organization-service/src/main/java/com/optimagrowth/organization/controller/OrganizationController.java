@@ -14,12 +14,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.optimagrowth.organization.model.Organization;
 import com.optimagrowth.organization.service.OrganizationService;
 
+import java.util.function.Supplier;
+import org.springframework.context.annotation.Bean;
+
 @RestController
 @RequestMapping(value="v1/organization")
 public class OrganizationController {
     @Autowired
     private OrganizationService service;
-
 
     @RequestMapping(value="/{organizationId}",method = RequestMethod.GET)
     public ResponseEntity<Organization> getOrganization( @PathVariable("organizationId") String organizationId) {
