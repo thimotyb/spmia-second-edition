@@ -168,8 +168,9 @@ curl <podip>
 
 # DOwnload and install spring tools
 https://spring.io/tools
+wget https://cdn.spring.io/spring-tools/release/STS4/4.27.0.RELEASE/dist/e4.34/spring-tool-suite-4-4.27.0.RELEASE-e4.34.0-linux.gtk.x86_64.tar.gz
 cd /home/azureuser/Downloads
-tar xfz spring-tool-suite-4-4.22.1.RELEASE-e4.31.0-linux.gtk.x86_64.tar.gz
+tar xfz spring-tool-suite-4-4.27.0.RELEASE-e4.34.0-linux.gtk.x86_64.tar.gz
 
 # Using gitpod
 sudo apt update
@@ -368,16 +369,63 @@ curl -v http://localhost:8072/organization-service/v1/organization/d898a142-de44
 curl -v http://localhost:8072/organization-service/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3 -H "tmx-correlation-id: 4c0b1368-9e22-41d8-abd9-f1c4b35dtimo" # Corr ID fetched from request and bounced on response
 
 
-Chapter7
+##########################
+# CHAPTER 8 - SECURITY OAUTH2
+##########################
 # Request TOken for User # Basic 64encoding of eagleeye:thisissecret
+echo -n 'admin:password' | base64
+YWRtaW46cGFzc3dvcmQ=
+
+https://www.baeldung.com/spring-security-oauth-auth-server
+
+sudo -i
+vi /etc/hosts
+127.0.0.1 authserver
+
+start separately manually with mvn spring-boot:run
+-authserver
+-resourceserver
+-clientserver
+
+browser go to http://127.0.0.1:8080/articles
+
+curl -v http://localhost:9000/oauth2/authorize?response_type=code&client_id=articles-client&scope=openid articles.read&redirect_uri=http://127.0.0.1:8080/authorized
+
+curl -X POST \
+  -u articles-client:secret \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=authorization_code" \
+  -d "code=<AUTHORIZATION_CODE>" \
+  -d "redirect_uri=http://127.0.0.1:8080/authorized" \
+  http://auth-server:9000/oauth2/token
+
+curl -X POST \
+  -u articles-client:secret \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=password" \
+  --header 'Authorization: Basic YWRtaW46cGFzc3dvcmQ=' \
+  -d "redirect_uri=http://127.0.0.1:8080/authorized" \
+  http://localhost:9000/oauth2/token
+
+
+
 wget --no-check-certificate \
   --method POST \
   --timeout=0 \
   --header 'Content-Type: application/x-www-form-urlencoded' \
-  --header 'Authorization: Basic ZWFnbGVleWU6dGhpc2lzc2VjcmV0' \
-  --body-data 'grant_type=password&scope=webclient&username=john.carnell&password=password1' \
+  --header 'Authorization: Basic YWRtaW46cGFzc3dvcmQ=' \
+  --body-data 'grant_type=password&scope=webclient&username=admin&password=password' \
    'http://localhost:8901/auth/oauth/token'
 
+
+wget --no-check-certificate \
+  --method POST \
+  --timeout=0 \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --header 'client-id: articles-client' \
+  --header 'client-secret: {noop}secret' \
+  --body-data 'grant_type=password&scope=webclient&username=admin&password=password' \
+   'http://localhost:9000/auth/oauth/token'
 
 
 cat token
@@ -472,3 +520,9 @@ curl http://localhost:8072/licensing-service/v1/organization/d898a142-de44-466c-
 
 # Try again, this time Org is taken from Cache
 # icensingservice_1     | 2024-05-08 14:53:18.716 DEBUG 25 --- [nio-8080-exec-5] c.t.l.c.OrganizationRestTemplateClient   : I have successfully retrieved an organization e254f8c-c442-4ebe-a82a-e2fc1d1ff78a from the redis cache: com.thoughtmechanix.licenses.model.Organization@78619532
+
+
+
+
+
+
