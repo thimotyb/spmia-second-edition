@@ -25,6 +25,9 @@ spring:
   cloud:
     loadbalancer.ribbon.enabled: false
     gateway:
+        discovery.locator:    # Enables automatic mapping of routes via service discovery
+          enabled: true
+          lowerCaseServiceId: true
         routes:
         - id: organization-service
           uri: lb://organization-service
@@ -43,6 +46,9 @@ spring:
    
     
 management:
+  endpoint:  # Exposes gateway endpoint through actuator to explore routes
+    gateway:
+      enabled: true
   endpoints:
     web:
       exposure:

@@ -9,14 +9,14 @@ eureka:
     fetchRegistry: true
     serviceUrl:
       defaultZone: http://eurekaserver:8070/eureka/
-      
-
-
-      
+            
 spring:
   cloud:
     loadbalancer.ribbon.enabled: false
     gateway:
+        discovery.locator:    # Enables automatic mapping of routes via service discovery
+          enabled: true
+          lowerCaseServiceId: true
         routes:
         - id: organization-service
           uri: lb://organization-service
@@ -24,19 +24,20 @@ spring:
           - Path=/organization/**
           filters:
           - RewritePath=/organization/(?<path>.*), /$\{path}
-          - RemoveRequestHeader= Cookie,Set-Cookie
         - id: licensing-service
           uri: lb://licensing-service
           predicates:
           - Path=/license/**
           filters:
           - RewritePath=/license/(?<path>.*), /$\{path}
-          - RemoveRequestHeader= Cookie,Set-Cookie
-            
+
+
+       
 management:
+  endpoint:  # Exposes gateway endpoint through actuator to explore routes
+    gateway:
+      enabled: true
   endpoints:
     web:
       exposure:
         include: "*"
-        
-        
