@@ -65,4 +65,17 @@ public class OrganizationRestTemplateClient {
             logger.error("Unable to cache organization {} in Redis. Exception {}", organization.getId(), ex);
         }
     }
+
+	public void deleteOrganizationObjectById(String organizationId) {
+		Organization organization = null;
+        try {
+			organization = redisRepository.findById(organizationId).orElse(null);
+        	if (organization!=null) {
+				redisRepository.delete(organization);
+				logger.debug("## Deleted organization "+organizationId+" from Redis Cache.");
+			}
+        }catch (Exception ex){
+            logger.error("Unable to delete organization {} in Redis. Exception {}", organization.getId(), ex);
+        }
+    }
 }

@@ -413,40 +413,62 @@ wget --no-check-certificate \
 BEARER_TOKEN_ADMIN=$(cat token.1 | jq -r .access_token)
 curl -v http://localhost:5555/api/licensing/v1/organizations/e254f8c-c442-4ebe-a82a-e2fc1d1ff78a/licenses/f3831f8c-c338-4ebe-a82a-e2fc1d1ff78a -H "Authorization: Bearer $BEARER_TOKEN_ADMIN" | jq
 
+##########################
+# CHAPTER 10 - EVENT DRIVEN ARCHITECTURE
+# If using demo with Authentication Enabled, add -H "Authorization: Bearer $BEARER_TOKEN" to each curl call as in
+# curl http://localhost:8085/v1/organizations/e254f8c-c442-4ebe-a82a-e2fc1d1ff78a -H "Authorization: Bearer $BEARER_TOKEN"
+##########################
 
 ### Chapter 8
 # Get Data from Organization
-curl http://localhost:8085/v1/organizations/e254f8c-c442-4ebe-a82a-e2fc1d1ff78a -H "Authorization: Bearer $BEARER_TOKEN"
+curl http://localhost:8072/organization-service/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3 | jq
 
-# Data From Licensing, Organization is Missing in Cache
-http://localhost:5555/api/licensing/v1/organizations/e254f8c-c442-4ebe-a82a-e2fc1d1ff78a/licenses/f3831f8c-c338-4ebe-a82a-e2fc1d1ff78a
+# Get Data From Licensing, Organization is Missing in Cache
+curl http://localhost:8072/licensing-service/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62 | jq
+# licensingservice-1     | 2024-12-13T09:01:04.312Z DEBUG 1 --- [licensing-service] [nio-8080-exec-1] c.o.l.s.c.OrganizationRestTemplateClient : Unable to locate organization # from the redis cache: d898a142-de44-466c-8c88-9ceb2c2429d3.
 
 # Try again, this time Org is taken from Cache
-# icensingservice_1     | 2024-05-08 14:53:18.716 DEBUG 25 --- [nio-8080-exec-5] c.t.l.c.OrganizationRestTemplateClient   : I have successfully retrieved an organization e254f8c-c442-4ebe-a82a-e2fc1d1ff78a from the redis cache: com.thoughtmechanix.licenses.model.Organization@78619532
+#licensingservice-1     | 2024-12-13T09:02:12.063Z DEBUG 1 --- [licensing-service] [nio-8080-exec-3] c.o.l.s.c.OrganizationRestTemplateClient : I have successfully retrieved #an organization d898a142-de44-466c-8c88-9ceb2c2429d3 from the redis cache: Organization(id=d898a142-de44-466c-8c88-9ceb2c2429d3, name=OptimaGrowth, contactName=Admin, #contactEmail=illaryhs@gmail.com, contactPhone=888888888)
 
 # Put New Data in Organization
-curl --location --request PUT 'http://localhost:8085/v1/organizations/e254f8c-c442-4ebe-a82a-e2fc1d1ff78a' \
---header "Authorization: Bearer $BEARER_TOKEN" \
+# Old call
+#curl --location --request PUT 'http://localhost:8085/v1/organizations/e254f8c-c442-4ebe-a82a-e2fc1d1ff78a' \
+#--header "Authorization: Bearer $BEARER_TOKEN" \
+#--header 'Content-Type: application/json' \
+#--data-raw '{
+#    "id": "e254f8c-c442-4ebe-a82a-e2fc1d1ff78a",
+#    "name": "customer-crm-co",
+#    "contactName": "Mark Balster TIMO2",
+#    "contactEmail": "mark.balster@custcrmco.com",
+#    "contactPhone": "823-555-1212"
+#}'
+
+curl --location --request PUT 'http://localhost:8072/organization-service/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-    "id": "e254f8c-c442-4ebe-a82a-e2fc1d1ff78a",
-    "name": "customer-crm-co",
-    "contactName": "Mark Balster TIMO2",
-    "contactEmail": "mark.balster@custcrmco.com",
-    "contactPhone": "823-555-1212"
+  "id": "d898a142-de44-466c-8c88-9ceb2c2429d3",
+  "name": "OptimaGrowth",
+  "contactName": "Admin TIMO",
+  "contactEmail": "thimoty.barbieri@gmail.com",
+  "contactPhone": "888888888"
 }'
 
+# Get Kafka server name
+docker-compose -f docker/docker-compose.yaml ps
+sudo docker exec -it docker-kafkaserver-1 /bin/bash
+wget https://archive.apache.org/dist/kafka/3.1.0/kafka_2.12-3.1.0.tgz
+tar -xvf kafka_2.12-3.1.0.tgz
+cd kafka_2.12-3.1.0
+bin/kafka-topics.sh --list --bootstrap-server localhost:9092
+bin/kafka-console-consumer.sh --topic organizationChange-out-0 --from-beginning --bootstrap-server localhost:9092
+
+# Check that Cache in License Server has been evicted
+
 # Get Data from Organization
-curl http://localhost:8085/v1/organizations/e254f8c-c442-4ebe-a82a-e2fc1d1ff78a -H "Authorization: Bearer $BEARER_TOKEN"
+curl http://localhost:8072/organization-service/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3 | jq
 
 # Data From Licensing, Organization is Missing in Cache
-http://localhost:5555/api/licensing/v1/organizations/e254f8c-c442-4ebe-a82a-e2fc1d1ff78a/licenses/f3831f8c-c338-4ebe-a82a-e2fc1d1ff78a
+curl http://localhost:8072/licensing-service/v1/organization/d898a142-de44-466c-8c88-9ceb2c2429d3/license/f2a9c9d4-d2c0-44fa-97fe-724d77173c62 | jq
 
 # Try again, this time Org is taken from Cache
 # icensingservice_1     | 2024-05-08 14:53:18.716 DEBUG 25 --- [nio-8080-exec-5] c.t.l.c.OrganizationRestTemplateClient   : I have successfully retrieved an organization e254f8c-c442-4ebe-a82a-e2fc1d1ff78a from the redis cache: com.thoughtmechanix.licenses.model.Organization@78619532
-
-
-
-
-
-
